@@ -1,0 +1,1769 @@
+openapi: 3.0.0
+
+info:
+  title: Riwi MedCare API
+  version: 1.0.0
+  description: |
+    API REST para la gestión de usuarios, clínicas, almacenes,
+    medicamentos, inventarios y solicitudes de abastecimiento.
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+tags:
+  - name: Usuarios
+    description: Gestión de usuarios y autenticación
+  - name: Clínicas
+    description: Gestión de clínicas
+  - name: Almacenes
+    description: Gestión de almacenes
+  - name: Medicamentos
+    description: Gestión de medicamentos
+  - name: Inventarios
+    description: Gestión del inventario
+  - name: Solicitudes
+    description: Gestión de solicitudes de abastecimiento
+  - name: Ciudades
+    description: Gestión de ciudades
+  - name: Teléfonos
+    description: Gestión de teléfonos
+  - name: NITs
+    description: Gestión de NITs
+  - name: Detalles Solicitud
+    description: Gestión de detalles de solicitudes
+
+paths:
+  # ==========================================================
+  # USUARIOS
+  # ==========================================================
+
+  /usuarios/login:
+    post:
+      tags:
+        - Usuarios
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@riwimedicare.com
+              password: password123
+
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              example:
+                message: Login successful
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                usuario:
+                  id: 123e4567-e89b-12d3-a456-426614174000
+                  nombre: Carlos Administrador
+                  email: admin@riwimedicare.com
+                  rol: administrador
+                  estado: activo
+
+        '400':
+          description: Email y contraseña requeridos
+
+        '401':
+          description: Credenciales inválidas
+
+        '403':
+          description: Usuario inactivo
+
+        '404':
+          description: Usuario no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+  /usuarios:
+    post:
+      tags:
+        - Usuarios
+      summary: Crear usuario
+      description: Registra un nuevo usuario.
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioCreate'
+            example:
+              nombre: Juan Gestor
+              email: juan.gestor@riwimedicare.com
+              password: password123
+              rol: gestor
+
+      responses:
+        '201':
+          description: Usuario creado correctamente
+
+        '400':
+          description: Datos inválidos
+
+        '401':
+          description: Token requerido o inválido
+
+        '403':
+          description: No tiene permisos
+
+        '409':
+          description: El email ya existe
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener todos los usuarios
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de usuarios
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '500':
+          description: Error interno del servidor
+
+  /usuarios/{id}:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener usuario por ID
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Usuario encontrado
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Usuario no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+    put:
+      tags:
+        - Usuarios
+      summary: Actualizar usuario
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioUpdate'
+
+      responses:
+        '200':
+          description: Usuario actualizado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Usuario no encontrado
+
+        '409':
+          description: El email ya existe
+
+        '500':
+          description: Error interno del servidor
+
+    delete:
+      tags:
+        - Usuarios
+      summary: Desactivar usuario
+      description: Realiza una eliminación lógica cambiando el estado del usuario.
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Usuario desactivado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Usuario no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+  # ==========================================================
+  # CLÍNICAS
+  # ==========================================================
+
+  /clinicas:
+    post:
+      tags:
+        - Clínicas
+      summary: Crear clínica
+      description: Registra una nueva clínica.
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClinicaCreate'
+            example:
+              nombre: Clínica Riwi Central
+              nit: 900123456-1
+              direccion: Calle 45 #12-34
+              ciudad: Barranquilla
+              telefono: 3001234567
+              responsable: Pedro Martínez
+
+      responses:
+        '201':
+          description: Clínica creada correctamente
+
+        '400':
+          description: Datos requeridos
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Ciudad, teléfono o NIT no encontrado
+
+        '409':
+          description: La clínica ya existe
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Clínicas
+      summary: Obtener clínicas
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de clínicas
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /clinicas/{id}:
+    get:
+      tags:
+        - Clínicas
+      summary: Obtener clínica por ID
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Clínica encontrada
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Clínica no encontrada
+
+    put:
+      tags:
+        - Clínicas
+      summary: Actualizar clínica
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClinicaCreate'
+
+      responses:
+        '200':
+          description: Clínica actualizada correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Clínica no encontrada
+
+        '500':
+          description: Error interno del servidor
+
+    delete:
+      tags:
+        - Clínicas
+      summary: Desactivar clínica
+      description: Realiza una eliminación lógica de la clínica.
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Clínica desactivada correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Clínica no encontrada
+
+        '500':
+          description: Error interno del servidor
+
+  # ==========================================================
+  # ALMACENES
+  # ==========================================================
+
+  /almacenes:
+    post:
+      tags:
+        - Almacenes
+      summary: Crear almacén
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlmacenCreate'
+            example:
+              nombre: Almacén Principal
+              ciudad: Barranquilla
+              departamento: Atlántico
+              direccion: Vía 40 #85-10
+
+      responses:
+        '201':
+          description: Almacén creado correctamente
+
+        '400':
+          description: Datos requeridos
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Ciudad no encontrada
+
+        '409':
+          description: El almacén ya existe
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Almacenes
+      summary: Obtener almacenes
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de almacenes
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /almacenes/{id}:
+    get:
+      tags:
+        - Almacenes
+      summary: Obtener almacén por ID
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Almacén encontrado
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Almacén no encontrado
+
+    put:
+      tags:
+        - Almacenes
+      summary: Actualizar almacén
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlmacenCreate'
+
+      responses:
+        '200':
+          description: Almacén actualizado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Almacén no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+    delete:
+      tags:
+        - Almacenes
+      summary: Desactivar almacén
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Almacén desactivado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Almacén no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+  # ==========================================================
+  # MEDICAMENTOS
+  # ==========================================================
+
+  /medicamentos:
+    post:
+      tags:
+        - Medicamentos
+      summary: Crear medicamento
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicamentoCreate'
+            example:
+              codigo: MED-ACE-500
+              nombre: Acetaminofén
+              descripcion: Analgésico y antipirético
+              precio: 2500
+
+      responses:
+        '201':
+          description: Medicamento creado correctamente
+
+        '400':
+          description: Datos requeridos
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '409':
+          description: El medicamento ya existe
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Medicamentos
+      summary: Obtener medicamentos
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de medicamentos
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /medicamentos/{id}:
+    get:
+      tags:
+        - Medicamentos
+      summary: Obtener medicamento por ID
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Medicamento encontrado
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Medicamento no encontrado
+
+    put:
+      tags:
+        - Medicamentos
+      summary: Actualizar medicamento
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicamentoCreate'
+
+      responses:
+        '200':
+          description: Medicamento actualizado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Medicamento no encontrado
+
+    delete:
+      tags:
+        - Medicamentos
+      summary: Desactivar medicamento
+      description: Realiza una eliminación lógica.
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Medicamento desactivado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Medicamento no encontrado
+
+  # ==========================================================
+  # INVENTARIOS
+  # ==========================================================
+
+  /inventarios:
+    post:
+      tags:
+        - Inventarios
+      summary: Crear inventario
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventarioCreate'
+            example:
+              almacen: Almacén Principal
+              medicamento: Acetaminofén
+              cantidad: 100
+
+      responses:
+        '201':
+          description: Inventario creado correctamente
+
+        '400':
+          description: Datos requeridos o cantidad inválida
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Almacén o medicamento no encontrado
+
+        '409':
+          description: El medicamento ya existe en el almacén
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Inventarios
+      summary: Obtener inventarios
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de inventarios
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /inventarios/{id}:
+    get:
+      tags:
+        - Inventarios
+      summary: Obtener inventario por ID
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Inventario encontrado
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Inventario no encontrado
+
+    put:
+      tags:
+        - Inventarios
+      summary: Actualizar inventario
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventarioCreate'
+
+      responses:
+        '200':
+          description: Inventario actualizado correctamente
+
+        '400':
+          description: Cantidad inválida
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Inventario no encontrado
+
+    delete:
+      tags:
+        - Inventarios
+      summary: Desactivar inventario
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Inventario desactivado correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Inventario no encontrado
+
+  # ==========================================================
+  # SOLICITUDES
+  # ==========================================================
+
+  /solicitudes:
+    post:
+      tags:
+        - Solicitudes
+      summary: Crear solicitud de abastecimiento
+      description: |
+        Registra una nueva solicitud de abastecimiento.
+        La solicitud inicia con estado pendiente.
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitudCreate'
+            example:
+              clinica: Clínica Riwi Central
+              almacen: Almacén Principal
+              usuario: juan.gestor@riwimedicare.com
+
+      responses:
+        '201':
+          description: Solicitud creada correctamente
+
+        '400':
+          description: Clínica, almacén y usuario son requeridos
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Clínica, almacén o usuario no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Solicitudes
+      summary: Obtener todas las solicitudes
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de solicitudes
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /solicitudes/activas:
+    get:
+      tags:
+        - Solicitudes
+      summary: Obtener solicitudes activas
+      description: Consulta las solicitudes que se encuentran pendientes.
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de solicitudes activas
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /solicitudes/historial:
+    get:
+      tags:
+        - Solicitudes
+      summary: Obtener historial de solicitudes
+      description: Consulta el historial completo de solicitudes registradas.
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Historial de solicitudes
+
+        '401':
+          description: Token requerido
+
+        '500':
+          description: Error interno del servidor
+
+  /solicitudes/{id}:
+    get:
+      tags:
+        - Solicitudes
+      summary: Obtener solicitud por ID
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la solicitud
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Solicitud encontrada
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Solicitud no encontrada
+
+    put:
+      tags:
+        - Solicitudes
+      summary: Actualizar estado de solicitud
+      description: Actualiza el estado de una solicitud existente.
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la solicitud
+          schema:
+            type: string
+            format: uuid
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitudEstadoUpdate'
+            example:
+              estado: aprobada
+
+      responses:
+        '200':
+          description: Solicitud actualizada correctamente
+
+        '400':
+          description: Estado requerido
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Solicitud no encontrada
+
+        '500':
+          description: Error interno del servidor
+
+    delete:
+      tags:
+        - Solicitudes
+      summary: Cancelar solicitud
+      description: |
+        Realiza una eliminación lógica de la solicitud
+        cambiando su estado a cancelada.
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la solicitud
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        '200':
+          description: Solicitud cancelada correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: Solo el administrador puede cancelar solicitudes
+
+        '404':
+          description: Solicitud no encontrada
+
+        '500':
+          description: Error interno del servidor
+
+  # ==========================================================
+  # CIUDADES
+  # ==========================================================
+
+  /ciudades:
+    post:
+      tags:
+        - Ciudades
+      summary: Crear ciudad
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CiudadCreate'
+            example:
+              nombre: Barranquilla
+              departamento: Atlántico
+
+      responses:
+        '201':
+          description: Ciudad creada correctamente
+
+        '400':
+          description: Nombre y departamento son requeridos
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '409':
+          description: La ciudad ya existe
+
+    get:
+      tags:
+        - Ciudades
+      summary: Obtener ciudades
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de ciudades
+
+        '401':
+          description: Token requerido
+
+  /ciudades/{nombre}:
+    get:
+      tags:
+        - Ciudades
+      summary: Obtener ciudad por nombre
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: nombre
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Barranquilla
+
+      responses:
+        '200':
+          description: Ciudad encontrada
+
+        '401':
+          description: Token requerido
+
+        '404':
+          description: Ciudad no encontrada
+
+    put:
+      tags:
+        - Ciudades
+      summary: Actualizar ciudad
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: nombre
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Barranquilla
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CiudadCreate'
+
+      responses:
+        '200':
+          description: Ciudad actualizada correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Ciudad no encontrada
+
+        '409':
+          description: El nombre ya existe
+
+    delete:
+      tags:
+        - Ciudades
+      summary: Desactivar ciudad
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: nombre
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Barranquilla
+
+      responses:
+        '200':
+          description: Ciudad desactivada correctamente
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Ciudad no encontrada
+
+  # ==========================================================
+  # TELÉFONOS
+  # ==========================================================
+
+  /telefonos:
+    post:
+      tags:
+        - Teléfonos
+      summary: Crear teléfono
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelefonoCreate'
+            example:
+              numero: '3001234567'
+              tipo: movil
+
+      responses:
+        '201':
+          description: Teléfono creado correctamente
+
+        '400':
+          description: Datos inválidos
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '409':
+          description: El teléfono ya existe
+
+    get:
+      tags:
+        - Teléfonos
+      summary: Obtener teléfonos
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de teléfonos
+
+        '401':
+          description: Token requerido
+
+  # ==========================================================
+  # NITS
+  # ==========================================================
+
+  /nits:
+    post:
+      tags:
+        - NITs
+      summary: Crear NIT
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NitCreate'
+            example:
+              numero: '900123456-1'
+
+      responses:
+        '201':
+          description: NIT creado correctamente
+
+        '400':
+          description: Número requerido
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '409':
+          description: El NIT ya existe
+
+    get:
+      tags:
+        - NITs
+      summary: Obtener NITs
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de NITs
+
+        '401':
+          description: Token requerido
+
+  # ==========================================================
+  # DETALLES DE SOLICITUD
+  # ==========================================================
+
+  /detalles-solicitud:
+    post:
+      tags:
+        - Detalles Solicitud
+      summary: Crear detalle de solicitud
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetalleSolicitudCreate'
+            example:
+              solicitudId: 123e4567-e89b-12d3-a456-426614174000
+              medicamentoId: 71d4c3c1-4ec9-43cb-9a18-b93f5c7b683e
+              cantidadSolicitada: 20
+
+      responses:
+        '201':
+          description: Detalle creado correctamente
+
+        '400':
+          description: Datos requeridos o cantidad inválida
+
+        '401':
+          description: Token requerido
+
+        '403':
+          description: No tiene permisos
+
+        '404':
+          description: Solicitud o medicamento no encontrado
+
+        '500':
+          description: Error interno del servidor
+
+    get:
+      tags:
+        - Detalles Solicitud
+      summary: Obtener detalles de solicitudes
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Lista de detalles
+
+        '401':
+          description: Token requerido
+
+# ==========================================================
+# COMPONENTES
+# ==========================================================
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Ingresa el token JWT obtenido desde /usuarios/login.
+        Ejemplo:
+        Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@riwimedicare.com
+        password:
+          type: string
+          format: password
+          example: password123
+
+    UsuarioCreate:
+      type: object
+      required:
+        - nombre
+        - email
+        - password
+        - rol
+      properties:
+        nombre:
+          type: string
+          example: Juan Gestor
+        email:
+          type: string
+          format: email
+          example: juan.gestor@riwimedicare.com
+        password:
+          type: string
+          format: password
+          example: password123
+        rol:
+          type: string
+          enum:
+            - administrador
+            - gestor
+          example: gestor
+
+    UsuarioUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Juan Gestor Actualizado
+        email:
+          type: string
+          format: email
+          example: juan@riwimedicare.com
+        password:
+          type: string
+          format: password
+          example: nuevaPassword123
+        rol:
+          type: string
+          enum:
+            - administrador
+            - gestor
+        estado:
+          type: string
+          enum:
+            - activo
+            - inactivo
+
+    ClinicaCreate:
+      type: object
+      required:
+        - nombre
+        - nit
+        - direccion
+        - ciudad
+        - telefono
+        - responsable
+      properties:
+        nombre:
+          type: string
+          example: Clínica Riwi Central
+        nit:
+          type: string
+          example: 900123456-1
+        direccion:
+          type: string
+          example: Calle 45 #12-34
+        ciudad:
+          type: string
+          example: Barranquilla
+        departamento:
+          type: string
+          example: Atlántico
+        telefono:
+          type: string
+          example: '3001234567'
+        responsable:
+          type: string
+          example: Pedro Martínez
+
+    AlmacenCreate:
+      type: object
+      required:
+        - nombre
+        - ciudad
+        - direccion
+      properties:
+        nombre:
+          type: string
+          example: Almacén Principal
+        ciudad:
+          type: string
+          example: Barranquilla
+        departamento:
+          type: string
+          example: Atlántico
+        direccion:
+          type: string
+          example: Vía 40 #85-10
+
+    MedicamentoCreate:
+      type: object
+      required:
+        - codigo
+        - nombre
+        - descripcion
+        - precio
+      properties:
+        codigo:
+          type: string
+          example: MED-ACE-500
+        nombre:
+          type: string
+          example: Acetaminofén
+        descripcion:
+          type: string
+          example: Analgésico y antipirético
+        precio:
+          type: number
+          format: float
+          example: 2500
+
+    InventarioCreate:
+      type: object
+      required:
+        - almacen
+        - medicamento
+        - cantidad
+      properties:
+        almacen:
+          type: string
+          example: Almacén Principal
+        medicamento:
+          type: string
+          example: Acetaminofén
+        cantidad:
+          type: integer
+          minimum: 0
+          example: 100
+
+    SolicitudCreate:
+      type: object
+      required:
+        - clinica
+        - almacen
+        - usuario
+      properties:
+        clinica:
+          type: string
+          example: Clínica Riwi Central
+        almacen:
+          type: string
+          example: Almacén Principal
+        usuario:
+          type: string
+          format: email
+          example: juan.gestor@riwimedicare.com
+
+    SolicitudEstadoUpdate:
+      type: object
+      required:
+        - estado
+      properties:
+        estado:
+          type: string
+          enum:
+            - pendiente
+            - aprobada
+            - rechazada
+            - cancelada
+            - completada
+          example: aprobada
+
+    DetalleSolicitudCreate:
+      type: object
+      required:
+        - solicitudId
+        - medicamentoId
+        - cantidadSolicitada
+      properties:
+        solicitudId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        medicamentoId:
+          type: string
+          format: uuid
+          example: 71d4c3c1-4ec9-43cb-9a18-b93f5c7b683e
+        cantidadSolicitada:
+          type: integer
+          minimum: 1
+          example: 20
+
+    CiudadCreate:
+      type: object
+      required:
+        - nombre
+        - departamento
+      properties:
+        nombre:
+          type: string
+          example: Barranquilla
+        departamento:
+          type: string
+          example: Atlántico
+
+    TelefonoCreate:
+      type: object
+      required:
+        - numero
+        - tipo
+      properties:
+        numero:
+          type: string
+          example: '3001234567'
+        tipo:
+          type: string
+          example: movil
+
+    NitCreate:
+      type: object
+      required:
+        - numero
+      properties:
+        numero:
+          type: string
+          example: '900123456-1'
+
+    Solicitud:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinicaId:
+          type: string
+          format: uuid
+        almacenId:
+          type: string
+          format: uuid
+        usuarioId:
+          type: string
+          format: uuid
+        estado:
+          type: string
+          enum:
+            - pendiente
+            - aprobada
+            - rechazada
+            - cancelada
+            - completada
+
+    DetalleSolicitud:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        solicitudId:
+          type: string
+          format: uuid
+        medicamentoId:
+          type: string
+          format: uuid
+        cantidadSolicitada:
+          type: integer
+          example: 20
+
+    Almacen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          example: Almacén Principal
+        ciudadId:
+          type: string
+          format: uuid
+        direccion:
+          type: string
+          example: Vía 40 #85-10
+
+    Medicamento:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+          example: MED-ACE-500
+        nombre:
+          type: string
+          example: Acetaminofén
+        descripcion:
+          type: string
+          example: Analgésico y antipirético
+        precio:
+          type: number
+          example: 2500
+
+    Inventario:
+      type: object
+      properties:
+        almacenId:
+          type: string
+          format: uuid
+        medicamentoId:
+          type: string
+          format: uuid
+        cantidad:
+          type: integer
+          example: 100
+
+    Ciudad:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          example: Barranquilla
+        departamento:
+          type: string
+          example: Atlántico
+
+    Telefono:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        numero:
+          type: string
+          example: '3001234567'
+        tipo:
+          type: string
+          example: movil
+
+    Nit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        numero:
+          type: string
+          example: '900123456-1'
